@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: calculadora-web
-    env: python
-    startCommand: "python app.py"
-    plan: free
