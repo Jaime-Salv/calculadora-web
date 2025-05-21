@@ -20,7 +20,8 @@ def calcular_resultado(datos, pn_salida_total):
         "total_cajas": 0,
         "total_coste_plastico": 0,
         "pn_entrada_especie": {},
-        "aditivos": {}
+        "aditivos": {},
+        "filas": []
     }
 
     for fila in datos:
@@ -35,8 +36,20 @@ def calcular_resultado(datos, pn_salida_total):
         resultados["pn_entrada_especie"][especie] = resultados["pn_entrada_especie"].get(especie, 0) + pn_entrada
 
         precio_formato = config["tabla_3"].get(especie, {}).get(formato, 0)
-        resultados["total_coste_plastico"] += precio_formato * cajas
+        coste_total_fila = precio_formato * cajas
+        resultados["total_coste_plastico"] += coste_total_fila
         resultados["total_cajas"] += cajas
+
+        # Suponemos 100 gramos de plástico por caja como valor genérico
+        kg_plastico_fila = config.get("plástico_promedio_kg_por_caja", 0.1) * cajas
+
+        resultados["filas"].append({
+            "especie": especie,
+            "formato": formato,
+            "pn_entrada": pn_entrada,
+            "kg_plastico": kg_plastico_fila,
+            "coste_plastico": coste_total_fila
+        })
 
     for nombre, datos_ad in config["aditivos"].items():
         porcentaje = datos_ad["porcentaje"]
