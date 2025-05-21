@@ -30,7 +30,7 @@
         </td>
         <td>
             <select name="formato[]" class="form-select">
-                {% for op in ["11KG", "4CJ", "EST"] %}
+                {% for op in ["11KG", "4CJ", "EST", "CG"] %}
                 <option value="{{ op }}" {% if datos[i].formato == op %}selected{% endif %}>{{ op }}</option>
                 {% endfor %}
             </select>
@@ -59,7 +59,7 @@
         </td>
         <td>
             <select name="formato[]" class="form-select">
-                {% for op in ["11KG", "4CJ", "EST"] %}
+                {% for op in ["11KG", "4CJ", "EST", "CG"] %}
                 <option value="{{ op }}">{{ op }}</option>
                 {% endfor %}
             </select>
@@ -90,6 +90,63 @@
 <button type="submit" class="btn btn-primary">📊 Calcular</button>
 </form>
 
+{% if resultado %}
+<div class="card mt-5">
+    <div class="card-body">
+        <h2 class="card-title">📈 Resultados</h2>
+        {% if resultado.error %}
+            <p class="text-danger">❌ Error: {{ resultado.error }}</p>
+        {% else %}
+        <div class="row text-center mb-4">
+            <div class="col-md-3"><div class="border rounded p-3 bg-light"><div style="font-size: 2rem;">📦</div><h4>{{ resultado.total_cajas }}</h4><p class="text-muted">Total cajas</p></div></div>
+            <div class="col-md-3"><div class="border rounded p-3 bg-light"><div style="font-size: 2rem;">🧪</div><h4>{{ resultado.total_plastico_kg|round(2) }} kg</h4><p class="text-muted">Plástico total</p></div></div>
+            <div class="col-md-3"><div class="border rounded p-3 bg-light"><div style="font-size: 2rem;">💰</div><h4>{{ resultado.total_coste_plastico|round(2) }} €</h4><p class="text-muted">Coste plástico</p></div></div>
+            <div class="col-md-3"><div class="border rounded p-3 bg-light"><div style="font-size: 2rem;">⚖️</div><h4>{{ resultado.plastico_por_caja|round(2) }} kg</h4><p class="text-muted">Plástico por caja</p></div></div>
+        </div>
+
+        <h5 class="mt-4">🧾 Desglose por fila</h5>
+        <table class="table table-sm table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Especie</th>
+              <th>Formato</th>
+              <th>Peso neto (kg)</th>
+              <th>Kg plástico</th>
+              <th>Coste (€)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for fila in resultado.filas %}
+            <tr>
+              <td>{{ fila.especie }}</td>
+              <td>{{ fila.formato }}</td>
+              <td>{{ fila.pn_entrada|round(2) }}</td>
+              <td>{{ fila.kg_plastico|round(2) }}</td>
+              <td>{{ fila.coste_plastico|round(2) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <h5 class="mt-4">📊 Peso neto por especie:</h5>
+        <div class="row">
+            {% for especie, valor in resultado.pn_entrada_especie.items() %}
+            <div class="col-md-4"><div class="border rounded p-3 mb-3 bg-white text-center"><div style="font-size: 2rem;">🧊</div><h5>{{ valor|round(2) }} kg</h5><p class="text-muted">{{ especie }}</p></div></div>
+            {% endfor %}
+        </div>
+
+        <h5 class="mt-4">🧂 Aditivos utilizados:</h5>
+        <div class="row">
+            {% for nombre, datos in resultado.aditivos.items() %}
+            <div class="col-md-4"><div class="border rounded p-3 mb-3 bg-white text-center"><div style="font-size: 2rem;">🧂</div><h5>{{ datos.kg }} kg / {{ datos.euro }} €</h5><p class="text-muted">{{ nombre }}</p></div></div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+
 <script>
     function añadirFila() {
         const tabla = document.getElementById("tabla-entrada").getElementsByTagName("tbody")[0];
@@ -109,38 +166,4 @@
     }
 </script>
 
-
-{% if resultado %}
-<div class="card mt-5">
-    <div class="card-body">
-        <h2 class="card-title">📈 Resultados</h2>
-        {% if resultado.error %}
-            <p class="text-danger">❌ Error: {{ resultado.error }}</p>
-        {% else %}
-        <div class="row text-center mb-4">
-            <div class="col-md-3"><div class="border rounded p-3 bg-light"><div style="font-size: 2rem;">📦</div><h4>{{ resultado.total_cajas|round(2) }}</h4><p class="text-muted">Total cajas</p></div></div>
-            <div class="col-md-3"><div class="border rounded p-3 bg-light"><div style="font-size: 2rem;">💰</div><h4>{{ resultado.total_coste_plastico|round(2) }} €</h4><p class="text-muted">Coste plástico</p></div></div>
-            {% if resultado.total_plastico_kg is defined %}
-            <div class="col-md-3"><div class="border rounded p-3 bg-light"><div style="font-size: 2rem;">♻️</div><h4>{{ resultado.total_plastico_kg|round(2) }} kg</h4><p class="text-muted">Plástico total</p></div></div>
-            <div class="col-md-3"><div class="border rounded p-3 bg-light"><div style="font-size: 2rem;">⚖️</div><h4>{{ resultado.plastico_por_caja|round(3) }} kg</h4><p class="text-muted">Plástico por caja</p></div></div>
-            {% endif %}
-        </div>
-
-        <h5 class="mt-4">📊 Peso neto por especie:</h5>
-        <div class="row">
-            {% for especie, valor in resultado.pn_entrada_especie.items() %}
-            <div class="col-md-4"><div class="border rounded p-3 mb-3 bg-white text-center"><div style="font-size: 2rem;">🧊</div><h5>{{ valor }} kg</h5><p class="text-muted">{{ especie }}</p></div></div>
-            {% endfor %}
-        </div>
-
-        <h5 class="mt-4">🧂 Aditivos utilizados:</h5>
-        <div class="row">
-            {% for nombre, datos in resultado.aditivos.items() %}
-            <div class="col-md-4"><div class="border rounded p-3 mb-3 bg-white text-center"><div style="font-size: 2rem;">🧂</div><h5>{{ datos.kg }} kg / {{ datos.euro }} €</h5><p class="text-muted">{{ nombre }}</p></div></div>
-            {% endfor %}
-        </div>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
 {% endblock %}
